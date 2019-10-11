@@ -170,7 +170,7 @@ tidybrftbl %>%
 * The plot about average data values among "Excellent" response over time within a state is shown above. Although plot seems quite messy with great volatity, the general trend of mean values for each state decrease slightly from 2002 to 2010.
 * The violin plot about the distribution of data values for responses among location in NY states in 2006 and 2010 is shown above.  In two years, the general trend of response looks similar. The "Very good" response is always the highest and "Poor" response is the lowest.  The distribution of data values in 2010 was generally skewed to left for each response (except "Poor"); the distribution of data values in 2002 was generally seems in balanced for each response (except "Poor").
 
-```{r}
+```{r Problem 3}
 
 ```
 
