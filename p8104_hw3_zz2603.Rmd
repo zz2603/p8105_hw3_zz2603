@@ -82,16 +82,18 @@ mean_order_tbl[,1] <- weeklist[pull(mean_order_tbl,order_dow)+1]
 
 mean_order_tbl %>% knitr::kable()
 ```
+
 ## short description of the dataset
 We loaded the data *instacart* from the P8105.datasets. There are `r dim(instacart)[1]` rows and `r dim(instacart)[2]` columns in the dataset. There are `r length(names(instacart))` variables in the dataset. The key variables included *user_id*, *add_to_cart_order*, *order_number*, *order_dow*, *product_name*, *aisle* and *department*, because these information can help us quickly figure out which product or categaories are the most items ordered by customers (means popular). We can also assess other information from these variables, such as the time customer spent on orders and date customer picked to order.
+
 ## description for following questions:
 * there are `r  max(pull(instacart,aisle_id))` aisles in total. The most items are ordered from fresh fruits aisle.
 * the above plot show the number of items ordered per aisle that are greater than 10000. After the filteration, 122 aisles are left. The fresh fruits aisle has the highest number of ordered items.
 * the tables show the three most popular products in aisle “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Organic Baby Spinach, Organic Raspberries and Organic Blueberries are the three most popular product in asile packaged vegetables fruits; Light Brown Sugar, Cane Sugar and Organic Vanilla Extract are the most popular products in aisle baking ingredients; Standard Size Pet Waste bags, Beef Stew Canned Dog Food and Snack Sticks Chicken & Rice Recipe Dog Treats are the three most popular products in aisle dog food care.
 * the table above show the mean hour per day for products Coffee Ice Cream and	Pink Lady Apples.  It seems that people on Wednesday will spent relatively more times in ordering ice cream and apples than weekends on average.  
 
-
-```{r problem 2, out.width="80%"}
+# Problem 2
+```{r problem 2, out.width="100%"}
 data("brfss_smart2010")
 tidybrftbl <- brfss_smart2010 %>% 
   janitor::clean_names() %>% 
@@ -154,25 +156,89 @@ ggplot(exctbl,aes(x=year,y=mean_value))+
 tidybrftbl %>% 
   filter(year==2006|year==2010&locationabbr=="NY") %>% 
   group_by(locationdesc,response) %>% 
-  ggplot(aes(x=response,y=data_value))+geom_violin()+
+  ggplot(aes(x=response,y=data_value))+
+  geom_violin(aes(fill=response),color="blue",alpha=0.5)+
+  stat_summary(fun.y = median,geom = "point")+
   labs(
     x="Response",
     y="Data values",
     title="data values vs. responses in 2006 and 2010"
   )+
-  theme(axis.title = element_text(face = "bold"),
-        plot.title = element_text(face = "bold"))+
+  theme(
+    axis.text.x = element_text(angle = 90,hjust = 1),
+    axis.title = element_text(face = "bold"),
+    plot.title = element_text(face = "bold"))+
   facet_grid(.~year)
 
 ```
+
 ## short description for each question
 * The abbreviation of states with equal to or more than 7 states are shown above.The number of states in 2010 is more than number of states in 2002.
 * The plot about average data values among "Excellent" response over time within a state is shown above. Although plot seems quite messy with great volatity, the general trend of mean values for each state decrease slightly from 2002 to 2010.
 * The violin plot about the distribution of data values for responses among location in NY states in 2006 and 2010 is shown above.  In two years, the general trend of response looks similar. The "Very good" response is always the highest and "Poor" response is the lowest.  The distribution of data values in 2010 was generally skewed to left for each response (except "Poor"); the distribution of data values in 2002 was generally seems in balanced for each response (except "Poor").
 
+# Problem 3
 ```{r Problem 3}
+accdata <- read_csv("./data/accel_data.csv")
 
+tidyacc <- accdata %>% janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "min",
+    names_prefix = "activity_",
+    values_to = "activity_counts")
+
+day <- pull(tidyacc,day) %>% 
+  factor(levels = c("Sunday","Monday","Tuesday",
+                    "Wednesday","Thursday","Friday",
+                    "Saturday"))
+
+tidyacc[,3] <- day
+
+tidyacc <- tidyacc %>% mutate(weekday=recode(day,
+                                  "Monday"="Weekday",
+                                  "Tuesday"="weekday",
+                                  "Wednesday"="Weekday",
+                                  "Thursday"="Weekday",
+                                  "Friday"="Weekday",
+                                  "Saturday"="Weekend",
+                                  "Sunday"="Weekend"))
+head(tidyacc,n=20)
 ```
 
+## description of dataset
+There are `r dim(tidyacc)[1]` rows and `r dim(tidyacc)[2]` columns in the tidied dataset. We tried to re-combine all observations of activity counts for each minute in one column. The whole study test for `r max(pull(tidyacc,week))` weeks (`r max(pull(tidyacc,day_id))` days in total).Since we counted for each minute, we have `r dim(tidyacc)[1]` observations.
+
+```{r}
+tidyacc %>% 
+  group_by(day_id) %>% 
+  summarize(total_counts = sum(activity_counts)) %>% 
+  knitr::kable()
+  
+```
+
+I don't think the trend is apparrent from the table reading. It would be better if we can create a plot to see the general trend.
+
+```{r, out.width="100%"}
+tidyacc %>% 
+  group_by(day_id,day) %>% 
+  summarize(total_counts=sum(activity_counts)) %>% 
+  ggplot(aes(x=day_id,y=total_counts))+
+  geom_point(aes(color=day),alpha=0.6)+
+  geom_line(aes(color=day))+
+  geom_smooth(se=FALSE)+
+  labs(
+    x="Day ID",
+    y="Total activity counts per day",
+    title = "Total activity each day plot"
+  )+
+  theme(
+    axis.title = element_text(face="bold"),
+    plot.title = element_text(face = "bold")
+  )
+  
+```
+
+I failed to see any clear pattern between total activity and date. The potential seasonality is the only thing we can observed from the plots but still need more time to figure it out. There is no clear increasing or decreasing trends in the plot. Since the points of each day of week are so scattered, we have to connect them together to see the trends.However, the votality among each day of week is so high that we cannot simply conclude their patterns. The the total activity counts on Thursday, Tuesday and Wednesday did not change too much and tended to be flat. The other 4 days had greater votality. The counts on Monday increase in the three weeks but drop in the last two; the counts on Sunday keep dropping; counts on Friday did not have clear pattern; counts on Saturday also increase at first but drop in the last several weeks. 
 
 
