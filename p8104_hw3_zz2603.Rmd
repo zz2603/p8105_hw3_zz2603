@@ -14,15 +14,83 @@ library(p8105.datasets)
 ```
 
 # Question 1
-```{r problem 1}
+```{r problem 1, fig.height=12, fig.width=20}
 data("instacart")
 
+## How many aisles are there, and which aisles are the most items ordered 
+## from?
+instacart %>% pull(aisle) %>% unique() %>% length()
+## or we can also do
+pull(instacart,aisle_id) %>% max()
+## and for the aisle with most ordered products
+instacart %>% 
+  group_by(aisle,product_name) %>% 
+  summarize(total_order=sum(order_number)) %>% 
+  filter(min_rank(desc(total_order))<2) %>% 
+  .[which.max(pull(.,total_order)),] %>% pull(aisle)
 
+## Make a plot that shows the number of items ordered in each aisle, limiting 
+## this to aisles with more than 10000 items ordered. Arrange aisles sensibly,
+## and organize your plot so others can read it.
+instacart %>% 
+  group_by(aisle) %>%
+  summarize(total_order=sum(order_number)) %>% 
+  filter(total_order>10000) %>% 
+  ggplot(aes(x=aisle,y=total_order))+geom_point()+
+  labs(
+    x="name of aisle",
+    y="number of ordered items",
+    title = "number of items per aisle plot"
+  )+
+  theme(axis.text.x = element_text(angle = 90,hjust=1),
+        axis.title = element_text(size = 25,face = "bold"),
+        axis.text = element_text(size=12),
+        plot.title = element_text(size=26,face = "bold"))
+
+## Make a table showing the three most popular items in each of the aisles 
+## “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. 
+## Include the number of times each item is ordered in your table.
+instacart %>% 
+  filter(aisle=="baking ingredients"|aisle=="dog food care"|aisle=="packaged vegetables fruits") %>% 
+  group_by(aisle,product_name) %>% 
+  summarize(total_order=sum(order_number)) %>% 
+  mutate(rank=min_rank(desc(total_order))) %>% 
+  filter(rank<4) %>% arrange(desc(total_order)) %>% 
+  knitr::kable()
+
+## Make a table showing the mean hour of the day at which Pink Lady Apples 
+## and Coffee Ice Cream are ordered on each day of the week; format this 
+## table for human readers (i.e. produce a 2 x 7 table).
+mean_order_tbl <- instacart %>% 
+  filter(
+    product_name=="Pink Lady Apples"|product_name=="Coffee Ice Cream"
+    ) %>% 
+  group_by(product_name,order_dow) %>% 
+  summarize(mean_order_hour_day=mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = product_name,
+    values_from = mean_order_hour_day,
+  )
+
+weeklist <- c("Sunday","Monday","Tuesday",
+              "Wednesday","Thursday","Friday",
+              "Saturday")
+
+mean_order_tbl[,1] <- weeklist[pull(mean_order_tbl,order_dow)+1]
+
+mean_order_tbl %>% knitr::kable()
 ```
+## short description of the dataset
+We loaded the data *instacart* from the P8105.datasets. There are `r dim(instacart)[1]` rows and `r dim(instacart)[2]` columns in the dataset. There are `r length(names(instacart))` variables in the dataset. The key variables included *user_id*, *add_to_cart_order*, *order_number*, *order_dow*, *product_name*, *aisle* and *department*, because these information can help us quickly figure out which product or categaories are the most items ordered by customers (means popular). We can also assess other information from these variables, such as the time customer spent on orders and date customer picked to order.
+## description for following questions:
+* there are `r  max(pull(instacart,aisle_id))` aisles in total. The most items are ordered from fresh fruits aisle.
+* the above plot show the number of items ordered per aisle that are greater than 10000. After the filteration, 122 aisles are left. The fresh fruits aisle has the highest number of ordered items.
+* the tables show the three most popular products in aisle “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Organic Baby Spinach, Organic Raspberries and Organic Blueberries are the three most popular product in asile packaged vegetables fruits; Light Brown Sugar, Cane Sugar and Organic Vanilla Extract are the most popular products in aisle baking ingredients; Standard Size Pet Waste bags, Beef Stew Canned Dog Food and Snack Sticks Chicken & Rice Recipe Dog Treats are the three most popular products in aisle dog food care.
+* the table above show the mean hour per day for products Coffee Ice Cream and	Pink Lady Apples.  It seems that people on Wednesday will spent relatively more times in ordering ice cream and apples than weekends on average.  
 
 
+```{r problem 2}
 
-```{r pressure, echo=FALSE}
 
 ```
 
