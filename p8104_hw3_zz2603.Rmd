@@ -16,7 +16,7 @@ library(jsonlite)
 ```
 
 # Question 1
-```{r problem 1, fig.height=12, fig.width=20}
+```{r problem 1, fig.height=10, fig.width=15}
 data("instacart")
 
 ## How many aisles are there, and which aisles are the most items ordered 
@@ -27,26 +27,26 @@ pull(instacart,aisle_id) %>% max()
 ## and for the aisle with most ordered products
 instacart %>% 
   group_by(aisle,product_name) %>% 
-  summarize(total_order=sum(order_number)) %>% 
-  filter(min_rank(desc(total_order))<2) %>% 
-  .[which.max(pull(.,total_order)),] %>% pull(aisle)
+  summarize(num_order=n()) %>% 
+  filter(min_rank(desc(num_order))<2) %>% 
+  .[which.max(pull(.,num_order)),] %>% pull(aisle)
 
-## Make a plot that shows the number of items ordered in each aisle, limiting 
-## this to aisles with more than 10000 items ordered. Arrange aisles sensibly,
-## and organize your plot so others can read it.
+## Make a plot that shows the number of items ordered in each aisle, limiting
+## this to aisles with more than 10000 items ordered. Arrange aisles 
+## sensibly,and organize your plot so others can read it.
 instacart %>% 
   group_by(aisle) %>%
-  summarize(total_order=sum(order_number)) %>% 
-  filter(total_order>10000) %>% 
-  ggplot(aes(x=aisle,y=total_order))+geom_point()+
+  summarize(num_order=n()) %>% 
+  filter(num_order>10000) %>% 
+  ggplot(aes(x=aisle,y=num_order))+geom_point()+
   labs(
-    x="name of aisle",
-    y="number of ordered items",
-    title = "number of items per aisle plot"
+    x="Name of aisle",
+    y="Number of ordered items",
+    title = "Number of ordered items per aisle plot"
   )+
   theme(axis.text.x = element_text(angle = 90,hjust=1),
         axis.title = element_text(size = 25,face = "bold"),
-        axis.text = element_text(size=12),
+        axis.text = element_text(size=15),
         plot.title = element_text(size=26,face = "bold"))
 
 ## Make a table showing the three most popular items in each of the aisles 
