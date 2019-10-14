@@ -154,15 +154,15 @@ ggplot(exctbl,aes(x=year,y=mean_value))+
 ## of data_value for responses (“Poor” to “Excellent”) among locations in NY 
 ## State.
 tidybrftbl %>% 
-  filter(year==2006|year==2010&locationabbr=="NY") %>% 
-  group_by(locationdesc,response) %>% 
-  ggplot(aes(x=response,y=data_value))+
-  geom_violin(aes(fill=response),color="blue",alpha=0.5)+
-  stat_summary(fun.y = median,geom = "point")+
+  filter((year==2006|year==2010)&locationabbr=="NY") %>%
+  ggplot(aes(x=locationdesc,y=data_value,fill=response))+
+  geom_bar(stat="identity",position="fill")+
+  coord_flip()+
+  viridis::scale_fill_viridis(discrete = TRUE)+
   labs(
-    x="Response",
-    y="Data values",
-    title="data values vs. responses in 2006 and 2010"
+    x="Data values",
+    y="Different locations in the NY state",
+    title="Location vs. data values in 2006 and 2010"
   )+
   theme(
     axis.text.x = element_text(angle = 90,hjust = 1),
